@@ -38,7 +38,7 @@ namespace MvvmCross.Platforms.Android.Core
             _applicationContext = applicationContext;
         }
 
-        public virtual Assembly ExecutableAssembly => ViewAssemblies.FirstOrDefault() ?? GetType().Assembly;
+        public virtual Assembly ExecutableAssembly => ViewAssemblies?.FirstOrDefault() ?? GetType().Assembly;
 
         public Context ApplicationContext => _applicationContext;
 
@@ -230,7 +230,7 @@ namespace MvvmCross.Platforms.Android.Core
 
         protected virtual IDictionary<string, string> ViewNamespaceAbbreviations => new Dictionary<string, string>
         {
-            { "Mvx", "MvvmCross.Binding.Droid.Views" }
+            { "Mvx", "MvvmCross.Platforms.Android.Views" }
         };
 
         protected virtual IEnumerable<string> ViewNamespaces => new List<string>
@@ -238,7 +238,7 @@ namespace MvvmCross.Platforms.Android.Core
             "Android.Views",
             "Android.Widget",
             "Android.Webkit",
-            "MvvmCross.Binding.Droid.Views",
+            "MvvmCross.Platforms.Android.Views",
         };
 
         protected virtual IEnumerable<Assembly> AndroidViewAssemblies => new List<Assembly>()

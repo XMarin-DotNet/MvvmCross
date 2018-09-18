@@ -1,3 +1,122 @@
+---
+layout: post
+title: MvvmCross 6.2
+date:   2018-4-14 14:00:00 -0300
+categories: mvvmcross
+---
+
+# Announcing MvvmCross 6.2!
+
+A new MvvmCross version is available on [NuGet](https://www.nuget.org/packages/MvvmCross/6.2.0)! You can always find the latest [changelog in the root of the repository](https://github.com/MvvmCross/MvvmCross/blob/develop/CHANGELOG.md) to see what has changed.
+
+We are very happy to announce this release includes [101](https://github.com/MvvmCross/MvvmCross/milestone/42?closed=1) issues / pull requests. Here is a quick overview:
+
+## About the MvvmCross project
+
+### Signed NuGet packages
+
+You might have already noticed, but we are pleased to announce that our NuGet packages are now signed! You can now verify their origin.
+
+### Improving our community 
+
+[@nickrandolph](https://github.com/nickrandolph) has started a great discussion about building a more active community of contributors. Please feel free to jump [into the conversation](https://github.com/MvvmCross/MvvmCross/issues/3034) and help us take MvvmCross to the next level!
+
+We are currently working on making use of GitHub teams to delegate and distribute responsibilities. As part of this work a codeowners file has been [added](https://github.com/MvvmCross/MvvmCross/pull/3061) (huge thanks to [vatsalyagoel](https://github.com/vatsalyagoel)!).
+
+### Issue templates
+
+[@willsb](https://github.com/willsb) introduced different type of issue templates. When you try to submit a new issue, you will be prompted to choose one among these categories: regression, bug report, feature request, enhancement proposal and question/help.
+
+### Speeding up build times while working in our source code
+
+Thanks to [@nickrandolph](https://github.com/nickrandolph)'s work, you can now set a conditional flag to build a single platform. Please look at [this PR](https://github.com/MvvmCross/MvvmCross/pull/3015) to see the details.
+
+## Core / Shared code
+
+### Breaking change in `MvxViewModel`
+
+Previously, `MvxViewModel` had properties for `IMvxNavigationService` and `IMvxLogProvider` which were resolved internally. After a long discussion we decided it to remove them and add a new ViewModel type: `MvxNavigationViewModel`, which has them as dependencies in the constructor. The interfaces `IMvxNavigationViewModel` and `IMvxLogViewModel` have been removed as well. Please look at [this PR](https://github.com/MvvmCross/MvvmCross/pull/3044) for the details.
+
+### IMvxNavigationService methods now return `Task<bool>` and events like `BeforeNavigateEventHandler` changed a parameter type
+
+- The boolean result indicates success / failure for the navigation action. 
+- The parameter of type `NavigateEventArgs` is now `IMvxNavigateEventArgs`. You can now trigger cancellation using that parameter from within your event handler.
+
+### Support for async Startup
+
+[@nickrandolph](https://github.com/nickrandolph) made it possible to perform async operations during the `Initialize` method of the first shown ViewModel. Please just be aware that this could have a direct impact on the UX of your app (SplashScreen could take longer to dissapear). 
+
+__Note:__ This change introduced a few breaking changes: Some methods now return `Task` instead of void.
+
+### ViewPresenter methods are now async
+
+Async operations in ViewPresenter have always been fire and forget. But thanks to [@nickrandolph](https://github.com/nickrandolph) this has changed and now all methods return `Task<bool>` and async operations are `awaited`. This change prevents some race conditions and weird issues that you might have had while using MvvmCross.
+
+### Changes to `Mvx`
+
+As part of a code improvement, `Mvx` methods have been marked as obsolete and will be removed probably for v7. You should update your app and replace calls like `Mvx.Resolve` for `Mvx.IoCProvider.Resolve`.
+
+## Xamarin.Forms
+
+- Compatibility with Xamarin.Forms 3.1 has been added. Please note that your app needs to be updated to that version as well.
+- On Android, the method `MvxFormsAppCompatActivity.OnBackPressed` assumed the app was using the default `MvxFormsPagePresenter` and this could cause your app to crash in some cases. The problem has been fixed.
+- Do you use the XAML Designer in your MvvmCross app? Yes? Then good news! [@cheesebaron](https://github.com/cheesebaron) [fixed](https://github.com/MvvmCross/MvvmCross/pull/3094) a problem which caused our controls not to be rendered correctly.
+- If you tried to resolve `IMvxFormsPagePresenter` using the IoC you could see your app crash. Thanks to [vatsalyagoel](https://github.com/vatsalyagoel) this has been [fixed](https://github.com/MvvmCross/MvvmCross/pull/2972).
+- If a binding had something else than a page as a root, your app could crash. Thanks to [@martijn00](https://github.com/martijn00) this has been [fixed](https://github.com/MvvmCross/MvvmCross/pull/3002).
+- UWP apps were [crashing](https://github.com/MvvmCross/MvvmCross/pull/3023) when being ressumed. Thanks to [@nickrandolph](https://github.com/nickrandolph) this doesn't happen anymore.
+- You can now reuse you ValueConverters within Xamarin.Forms XAML, following the same strategy that makes them usable in UWP (`MvxNativeValueConverter` has been added). If you want to see this in detail, please look at the awesome [PR](https://github.com/MvvmCross/MvvmCross/pull/3047) raised by [@MartinZikmund](https://github.com/MartinZikmund).
+- Using `mvx:MvxLang` or `mvx:Bind` in a DataTrigger could cause your app to immediately crash. Thanks to [@cheesebaron](https://github.com/cheesebaron) this doesn't happen anymore.
+
+## Android
+
+- We have improved our support for [nested fragments](https://github.com/MvvmCross/MvvmCross/pull/3001) overall. ViewPager Fragments are now correctly managed when the ViewPager's host is a Fragment and not an Activity. Thanks to [@nmilcoff](https://github.com/nmilcoff) for working on that.
+- `MvxAutoCompleteTextView` binding for PartialText was not working correctly. Thanks to [@cheesebaron](https://github.com/cheesebaron) this has been [fixed](https://github.com/MvvmCross/MvvmCross/pull/3027).
+- We have fixed a memory leak related to our ViewModel caching mechanism. If you want to see the details please look at the [PR](https://github.com/MvvmCross/MvvmCross/pull/3055) raised by [@nmilcoff](https://github.com/nmilcoff).
+- In certain scenarios, the first shown Activity was navigated to twice. Thanks to [@tbalcom](https://github.com/tbalcom) for detecting and fixing this problem!
+- If you repeatedly pressed the back button while the SplashScreen was being shown in your app, you might have noticed that it crashed. Thanks to [@tbalcom](https://github.com/tbalcom) for applying a [fix](https://github.com/MvvmCross/MvvmCross/pull/3085).
+- The default `DropDownItemTemplate` for `MvxAppCompatSpinner` now displays a string formed by `yourModel.ToString()` instead of nothing. This improvement has been done by [@tbalcom](https://github.com/tbalcom).
+- You can now bind `Android.Support.V7.Preferences.Preference.PreferenceClick` to an `ICommand`. This addition was made by [@tbalcom](https://github.com/tbalcom).
+- `MvxApplicationCallbacksCurrentTopActivity.Activities` is now protected, which makes it easier to customize. This improvement has been made by [@daividssilverio](https://github.com/daividssilverio).
+- `MvxAppCompatViewPresenter` now supports `MvxPagePresentationHint`, which in other words means that you can now change the selected tab of a ViewPager by using `navigationService.ChangePresentation`. This implementation was introduced by [@markuspalme](https://github.com/markuspalme).
+
+## iOS
+ 
+- When binding the ItemsSource property of `MvxExpandableTableViewSource`, a `AmbiguousMatchException` was thrown. Thanks to [@cheesebaron](https://github.com/cheesebaron) this has been [fixed](https://github.com/MvvmCross/MvvmCross/pull/3024).
+- We found out that our default LinkerPleaseInclude was missing some methods for `UITextField`. Please make sure to grab the latest version from [here](https://github.com/MvvmCross/MvvmCross/blob/master/ContentFiles/iOS/LinkerPleaseInclude.cs).
+- You can now use extension methods in Fluent bindings to bind `Preference.PreferenceClick` and `UIBarButtonItem.Clicked`. Huge thanks to [@Plac3hold3r](https://github.com/Plac3hold3r).
+- `MvxIosViewPresenter` now supports `MvxPagePresentationHint`, which in other words means that you can now change the selected tab by using `navigationService.ChangePresentation`. This implementation was introduced by [@markuspalme](https://github.com/markuspalme).
+- `MvxTabBarViewController.SelectedViewController` now returns null instead of throwing a `NullReferenceException`. Kudos to [@andrechi1](https://github.com/andrechi1)!
+
+## macOS
+
+- `MvxTableViewSource.GetOrCreateViewFor` is now virtual, and you can provide your own View. This improvement has been made by [@cheesebaron](https://github.com/cheesebaron).
+
+## WPF
+
+- `MvxWpfViewPresenter` used to assume your app was using `MvxWindow`s instead of `IMvxWindow`s. This isn't the case anymore thanks to [@cheesebaron](https://github.com/cheesebaron).
+- `ViewModel.ViewDestroy` is now called from `MvxWpfView.Unloaded`, which makes it much more reliable. Thanks to [@thongdoan](https://github.com/thongdoan) for this fix.
+
+## Plugins
+
+- `PictureChooser` was not working properly on iOS because of a crash when being injected. The creation of some components has been delayed so that this doesn't happen. Just make sure you make the plugin calls from the UI thread (iOS needs this!). Kudos to [@cheesebaron](https://github.com/cheesebaron)!
+- Our `Network` plugin has received a big update! It now throws exceptions where it should, instead of making your app crash. Also the code is now more async/await friendly. Thanks to [@nmilcoff](https://github.com/nmilcoff) for working on this.
+
+## Docs
+
+- `MvxRecyclerView` is now properly documented thanks to [@cheesebaron](https://github.com/cheesebaron)'s work.
+- `MvxSpinner` is now properly documented. Kudos to [@cheesebaron](https://github.com/cheesebaron)!
+- Links to code were fixed by [@nmilcoff](https://github.com/nmilcoff). 
+
+## Others
+
+- The framework now supports raising `PropertyChanging` events. This is enabled by default. Thanks to [@nickrandolph](https://github.com/nickrandolph) for implementing [this](https://github.com/MvvmCross/MvvmCross/pull/2943).
+- If you are using `Fody.PropertyChanged` please be sure you upgrade your app to the latest version of that package. [@borbmizzet](https://github.com/borbmizzet) has made [a PR](https://github.com/Fody/PropertyChanged/pull/346) fixing our compatibility with it.
+- Exceptions raised in event handlers for `PropertyChanged` won't make your app crash anymore. Thanks to [@nickrandolph](https://github.com/nickrandolph) for this improvement.
+- When cancelling a navigation to a ViewModel, the action wasn't always being stopped. This has been [fixed](https://github.com/MvvmCross/MvvmCross/pull/3006) by [@martijn00](https://github.com/martijn00).
+- Exceptions raised during the initialization of Setup are no longer swallowed. This fix was done by [@nickrandolph](https://github.com/nickrandolph).
+- When using Fluent bindings, you can now take advantage of the newly introduced method `ApplyWithClearBindingKey`. You can of course clear the entire binding set later on. This addition was done by [@Plac3hold3r](https://github.com/Plac3hold3r).
+
+
 # Change Log
 
 ## [6.2.0](https://github.com/MvvmCross/MvvmCross/tree/6.2.0) (2018-09-13)
@@ -164,7 +283,3 @@
 - Binding stop working after upgrade from 6.0.1 to 6.1.1 on Xamarin.Forms [\#2960](https://github.com/MvvmCross/MvvmCross/issues/2960)
 - Working with Xamarin.ios using MvvmCross Framework, getting System.ArgumentNullException. [\#2954](https://github.com/MvvmCross/MvvmCross/issues/2954)
 - Mvvmcross Android - getting error for custom adapter listview in alertdialog using dialogfragment [\#2846](https://github.com/MvvmCross/MvvmCross/issues/2846)
-
-
-
-\* *This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)*

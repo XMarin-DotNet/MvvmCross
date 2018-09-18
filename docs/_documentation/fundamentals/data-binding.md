@@ -89,7 +89,7 @@ The technique generally used for this is for the ViewModel to expose special `Co
 
 For example, a `CheckBox` might have a `CheckedCommand` and this might be bindable to a `RememberMeChangedCommand` on the ViewModel.
 
-Within Windows, For sometimes, when a View has not exposed
+Within Windows, for sometimes, when a View has not exposed
 
 ### Binding Modes 
 
@@ -103,7 +103,7 @@ There are 4 modes in which properties in the View can be bound to properties in 
 **One-Way** 
 
 - This binding mode transfers values from the ViewModel to the View
-- whenever the property changes within the ViewModel, then the corresponding View property is automatically adjusted. 
+- Whenever the property changes within the ViewModel, then the corresponding View property is automatically adjusted. 
 - This binding mode is useful when when showing, for example, data which is arriving from a dynamic source - like from a sensor or from a network data feed. 
 - In Windows/Xaml, this is very often the default binding mode - so it is the mode used when no other is selected.
 
@@ -962,6 +962,35 @@ set.Bind(button).To(vm => vm.readonly)
 ```
 
 *Note* : This feature is only available in fluent binding.
+
+### Clear Bindings
+
+If you want to dynamically remove individual bindings after you have applied them to your view you need to add a `ClearBindingKey` to your binding descriptions. The `ClearBindingKey` can be any object type.
+
+***Individual binding***
+
+```c#
+bindingSet.Bind(_inputText)
+    .For(v => v.Text)
+    .To(vm => vm.TextValue)
+    .WithClearBindingKey(nameof(_inputText));
+```
+
+***Binding set*** (applied to all descriptions in the set)
+
+```c#
+bindingSet.Bind(_inputText)
+    .For(v => v.Text)
+    .To(vm => vm.TextValue);
+
+bindingSet.ApplyWithClearBindingKey(nameof(FluentBindingView));
+```
+
+To remove the binding using the `ClearBindingKey` you can make use of `ClearBindings` extension on the `IMvxBindingContextOwner`
+
+ ```c#
+ this.ClearBindings(nameof(FluentBindingView));
+ ```
 
 ### Default view properties
 
